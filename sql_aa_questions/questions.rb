@@ -1,3 +1,4 @@
+require 'byebug'
 require 'singleton'
 require 'sqlite3'
 
@@ -12,6 +13,9 @@ class QuestionsDatabase < SQLite3::Database
 end
 
 
+###################################
+# User
+###################################
 class User
   attr_accessor :id, :fname, :lname
   
@@ -41,8 +45,6 @@ class User
         users
       WHERE
         fname = ? AND lname = ?
-      
-      
     SQL
 
     data.map { |datum| User.new(datum) }
@@ -62,8 +64,16 @@ class User
     Reply.find_by_user_id(id)
   end
 
+  def followed_questions
+    QuestionFollow::followed_questions_for_user_id(id)
+  end
+
 end
 
+
+###################################
+# Question
+###################################
 class Question
   attr_accessor :id, :title, :body, :ass_author
 
@@ -112,8 +122,16 @@ class Question
   def replies
     Reply::find_by_question_id(id)
   end
+
+  def followers
+    QuestionFollow::followers_for_question_id(id)
+  end
 end
 
+
+###################################
+# QuestionFollow
+###################################
 class QuestionFollow
   attr_accessor :id, :user_id, :question_id
 
@@ -135,6 +153,36 @@ class QuestionFollow
     QuestionFollow.new(data.first)
   end
 
+  def self.followers_for_question_id(question_id)
+    data = QuestionsDatabase.instance.execute(<<-SQL, question_id)
+      SELECT
+        question_follows.user_id
+      FROM
+        question_follows
+      JOIN
+        users ON users.id = question_follows.user_id
+      WHERE
+        question_follows.question_id = ?
+    SQL
+
+    data.map {|user_id| User.find_by_id(user_id['user_id'])}
+  end
+
+  def self.followed_questions_for_user_id(user_id)
+    data = QuestionsDatabase.instance.execute(<<-SQL, user_id)
+      SELECT
+        question_follows.question_id
+      FROM
+        question_follows
+      JOIN
+        users ON users.id = question_follows.user_id
+      WHERE
+        question_follows.user_id = ?
+    SQL
+
+    data.map {|res| Question.find_by_id(res['question_id'])}
+  end
+
   def initialize(options)
     @id = options['id']
     @user_id = options['user_id']
@@ -142,6 +190,10 @@ class QuestionFollow
   end
 end
 
+
+###################################
+# Reply
+###################################
 class Reply
   attr_accessor :id, :question_id, :parent_reply_id, :user_id, :body, :subject
 
@@ -203,10 +255,11 @@ class Reply
   end
 
   def question
-    Question.find_by_question_id(question_id)
+    Question.find_by_id(question_id)
   end
 
   def parent_reply
+    raise "No parent reply" unless parent_reply_id
     Reply.find_by_id(parent_reply_id)
   end
 
@@ -216,6 +269,9 @@ class Reply
 end
 
 
+###################################
+# QuestionLike
+###################################
 class QuestionLike
   attr_accessor :id, :user_id, :question_id
   
