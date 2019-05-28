@@ -74,32 +74,28 @@ h2 + .user_review {
     border-top: 1px solid black;
 }
 
-nav li {
+nav,
+nav li,
+nav ul,
+nav li a,
+section,
+aside,
+input[type="radio"] {
   display: inline-block;
 }
 
 nav li a {
-  display: inline-block;
   padding: 20px;
-}
-
-nav {
-  display: inline-block;
-}
-nav ul {
-  display: inline-block;
 }
 
 section {
   width: 700px;
-  display: inline-block;
 }
 
 aside {
   width: 180px;
-  display: inline-block;
   margin-right: 15px;
-  float: left;
+  vertical-align: top;
 }
 
 .ingredients-list li {
@@ -115,10 +111,6 @@ ol li {
 input,
 select {
   display: block;
-}
-
-input[type="radio"] {
-  display: inline-block;
 }
 
 select {
