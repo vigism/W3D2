@@ -1,13 +1,9 @@
 PRAGMA foreign_keys = ON;
 
 DROP TABLE IF EXISTS question_follows;
-
 DROP TABLE IF EXISTS replies;
-
 DROP TABLE IF EXISTS question_likes;
-
 DROP TABLE IF EXISTS questions;
-
 DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
@@ -21,6 +17,7 @@ CREATE TABLE questions(
   title VARCHAR(255) NOT NULL,
   body TEXT,
   ass_author INTEGER NOT NULL,
+
   FOREIGN KEY (ass_author) REFERENCES users(id)
 );
 
@@ -28,6 +25,7 @@ CREATE TABLE question_follows(
   id INTEGER PRIMARY KEY,
   user_id INTEGER NOT NULL,
   question_id INTEGER NOT NULL,
+
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (question_id) REFERENCES questions(id)
 );
@@ -49,6 +47,7 @@ CREATE TABLE question_likes(
   id INTEGER PRIMARY KEY,
   user_id INTEGER NOT NULL,
   question_id INTEGER NOT NULL,
+
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (question_id) REFERENCES questions(id)
 );
@@ -61,21 +60,23 @@ VALUES
   ('Eugene','IDK'),
   ('incognito', 'hackerone');
  
- INSERT INTO
+INSERT INTO
   questions(title, body,ass_author)
 VALUES
-  ('How do you create databases','My partner and I are really struggline pls help',1),
-  ('Can I has cheeseburger', 'PPLLEEASSEEEE',(SELECT id FROM users WHERE fname = 'Kenny')),
-  ('Can you come here and right code for me','IDK',1);
+  ('How do you create databases','pls help',1),
+  ('Can I has cheeseburger?', 'PPLLEEASSEEEE',(SELECT id FROM users WHERE fname = 'Kenny')),
+  ('Can you come here now?','IDK',1);
 
 
- INSERT INTO
+INSERT INTO
   question_follows(user_id,question_id)
 VALUES
   (1,2),
-  (1, 1),
+  (1,1),
   (2,3),
-  (3, 1);
+  (1,3),
+  (3,1),
+  (2,1);
 
 
 INSERT INTO
@@ -83,7 +84,7 @@ INSERT INTO
 VALUES
   (1, NULL, 2, 'Magic', 'Think harder!'),
   (2, NULL, 1,'No you just ate', 'No.'),
-  (3,NULL, 2,'No they don''t pay me enough to do that','no' ),
+  (3,NULL, 2,'No they don''t ','no' ),
   (2, 2, 3, 'I just wanted to say something', 'I''m leaving');
 
 

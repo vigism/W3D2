@@ -56,6 +56,10 @@ class User
     @lname = options['lname']
   end
 
+  def liked_questions
+    QuestionLike::liked_questions_for_user_id(id)
+  end
+
   def authored_questions()
     Question.find_by_author_id(id)
   end
@@ -108,11 +112,23 @@ class Question
     data.map { |datum| Question.new(datum) }
   end
 
+  def self.most_followed(n)
+    QuestionFollow::most_followed_questions(n)
+  end
+
   def initialize(options)
     @id = options['id']
     @title = options['title']
     @body = options['body']
     @ass_author = options['ass_author']
+  end
+
+  def likers
+    QuestionLike::likers_for_question_id(id)
+  end
+
+  def num_likes
+    QuestionLike::num_likes_for_question_id(id)
   end
 
   def author
@@ -181,6 +197,24 @@ class QuestionFollow
     SQL
 
     data.map {|res| Question.find_by_id(res['question_id'])}
+  end
+
+  def self.most_followed_questions(n)
+    data = QuestionsDatabase.instance.execute(<<-SQL, n)
+      SELECT
+        questions.*
+      FROM
+        questions
+      JOIN
+        question_follows ON question_follows.question_id = questions.id
+      GROUP BY
+        questions.id
+      ORDER BY
+        COUNT(questions.id) DESC
+      LIMIT
+        ?
+    SQL
+    data
   end
 
   def initialize(options)
@@ -291,6 +325,45 @@ class QuestionLike
     SQL
 
     QuestionLike.new(data.first)
+  end
+
+  def self.likers_for_question_id(question_id)
+    data = QuestionsDatabase.instance.execute(<<-SQL,question_id)
+      SELECT
+        users.*
+      FROM
+        users
+      JOIN 
+        question_likes ON users.id = question_likes.user_id
+      WHERE
+        question_likes.question_id = ?
+    SQL
+  end
+
+  def self.num_likes_for_question_id(question_id)
+    data = QuestionsDatabase.instance.execute(<<-SQL, question_id)
+      SELECT
+        COUNT(*)
+      FROM 
+        question_likes
+      WHERE
+        question_id = ?
+      GROUP BY
+        question_id
+    SQL
+  end
+
+  def self.liked_questions_for_user_id(user_id)
+    data = QuestionsDatabase.instance.execute(<<-SQL, user_id)
+      SELECT
+        questions.*
+      FROM
+        questions
+      JOIN 
+        question_likes ON question_likes.question_id = questions.id
+      WHERE 
+        question_likes.user_id = ?
+    SQL
   end
 
   def initialize(options)
